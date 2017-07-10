@@ -211,7 +211,7 @@ void Finder<ALPH>::startFind()
 template<int ALPH>
 bool Finder<ALPH>::findVertex(int v)
 {
-//	std::cerr << v << " " << findNow.size() << std::endl;
+	++iter;
 	if ((iter&255) == 0 && !checkTime())
 	{
 		return false;
