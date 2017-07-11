@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Anagrams on web</title>
+    <script>
+      function fetch(name) {
+          ws = new WebSocket("ws://localhost:3000/ws?" + encodeURIComponent(name));
+          document.getElementById("responce").innerHTML = "";
+          
+          ws.onmessage = function(event) {
+              resp = document.getElementById("responce");
+              event.data.split("\n").forEach(function(elem) {
+                  if (elem != "")
+                      resp.innerHTML += elem + "<br>";
+              });
+          };
+
+          ws.onclose = function(event) {
+              delete window.ws;
+          };
+
+          ws.onerror = function(event) {
+              document.getElementById("responce").innerHTML += "Ошибка сети<br>";
+          };
+      }
+
+      function search_stop() {
+          if (typeof ws !== 'undefined') {
+              ws.close();
+          }
+      }
+      
+      function search_start(name) {
+          search_stop();
+          fetch(name);
+      }
+    </script>
+    <style>
+      body, div, input {
+         margin: 0px;
+         padding: 0px;
+         border: 0px;
+      }
+      body {
+         width: 100%;
+      }
+      .header {
+         height: 32px;
+         background-color: #DEF7F6;
+      }
+      .formelem { 
+         height: 21px;
+         margin-top: 5px;
+         margin-bottom: 5px;
+         float: left;
+         margin-left: 5px;
+         border: 0.5px solid black;
+      }
+      .forminside {
+         height: 100%;
+         width: 100%;
+      }
+      .formtext {
+         width: 200px;
+      }
+      div.logoimg {
+         height: 32px;
+         width: 40px;
+         margin-right: 5px;
+         float: left;
+         background-size: cover;
+         background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABACAYAAACNx/A2AAAACXBIWXMAAAsTAAALEwEAmpwYAAABfUlEQVR42u2cQa7CMAwF4akb/i3g/meCW8CSv0UI2iSN7cSMl1Rqm+m82m0ljtfH/XmgmksgACAAAQhACoAABCAAKQACcLZaeu7scvr7+Pv1cQ9d5PnLed06nJes4W1ti4K3tY0IZ7sHRlrYaqgbwKxwiHC2MSajqbKCknl0MTdwDV6khWvwWi0UkRzMwFf7omP8zb6eMQ7pwpnMlTUEbwtLIfSyUFbxHaluhuelqAhaxLhH86jdh8s9MLOZioTk0UxaINVYqBEXPfrs193AEvsiYlxi394Yh7+Nmd1oeS7WysK98d1joTziG2Fhjw5bcmH0K1Gb5mXCr82EGgVGT8N7PrptGS7iu6+WUayZFaxGglRzLE9Ia8fis+ZsXTjbbWFpWUx09/X4ZGnyKJdxjksX4dlirOhF1Brt1X1Ljdao8a25gJ7xfb+AYkBOcA+cuTFp5EWWJCGi+74mQcQ3yRgza4yP/GdCwkEagACkAAhAAAKQAiAAAQhAaq3+ASL/kJynYzgXAAAAAElFTkSuQmCC);
+      }
+      #responce {
+         margin-top: 10px;
+         margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+       <div class="logoimg"></div>
+       <form onsubmit="search_start(this.children[0].children[0].value); return false">
+         <div class="formelem formtext">
+           <input class="forminside" type="text"/>
+         </div>
+         <div class="formelem formbtn">
+           <input class="forminside" type="submit" value="Отправить"/>
+         </div>
+       </form>
+    </div>
+    
+    <div id="responce">
+    </div>
+  </body>
+</html>
