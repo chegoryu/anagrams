@@ -10,10 +10,11 @@
           
           ws.onmessage = function(event) {
               resp = document.getElementById("responce");
-              console.log(1);
               event.data.split("\n").forEach(function(elem) {
-                  if (elem != "")
-                      resp.innerHTML += elem + "<br>";
+                  if (elem != "") {
+                      resp.appendChild(document.createTextNode(elem));
+                      resp.appendChild(document.createElement("br"));
+                  }
               });
           };
 

@@ -8,7 +8,7 @@
 #define CONFIG_UNI_START 1072
 
 #define CONFIG_MAX_TIME      30
-#define CONFIG_MAX_RESPONCE  40
+#define CONFIG_MAX_RESPONCE  1000
 
 #define CONFIG_DICT_PATH "dict.utf8"
 
