@@ -56,7 +56,8 @@ public:
 		   const std::vector<std::pair<char, int>> &_toFind,
 		   int _minLen,
 		   int _maxLen,
-		   int (*_callback)(const char*, int, int*),
+		   int (*_callback)(const char*, int, int*, void*),
+		   void *_user,
 		   bool _canSame = false,
 		   int _isRandom = 0,
 		   int _bruteTime = 10);	
@@ -81,7 +82,8 @@ private:
 	std::vector<std::vector<char>> findNow;
 	int minLen;
 	int maxLen;
-	int (*callback)(const char*, int, int*);
+	int (*callback)(const char*, int, int*, void*);
+	void *user;
 	bool canSame;
 	int isRandom;
 	int bruteTime;
@@ -224,7 +226,8 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 					const std::vector<std::pair<char, int>> &_toFind,
 					int _minLen,
 					int _maxLen,
-					int (*_callback)(const char*, int, int*),
+					int (*_callback)(const char*, int, int*, void*),
+					void *_user,
 					bool _canSame,
 					int _isRandom,
 					int _bruteTime)
@@ -247,6 +250,7 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 	maxLen = _maxLen;
 	
 	callback = _callback;
+	user = _user;
 
 	canSame = _canSame;
 	isRandom = _isRandom;
@@ -269,6 +273,7 @@ Finder<ALPH>::~Finder()
 	minLen = 0;
 	maxLen = 0;
 	callback = nullptr;
+	user = nullptr;
 	canSame = false;
 	isRandom = false;
 	bruteTime = 0;
@@ -386,7 +391,11 @@ int Finder<ALPH>::returnAnswer()
 	int *length;
 
 	convert_answer(st, answerLength, length);
-	return callback(st, answerLength, length);
+	int ans = callback(st, answerLength, length, user);
+	free(st);
+	free(length);
+
+	return ans;
 }
 
 template<int ALPH>

@@ -27,6 +27,7 @@ void brute(const char *st,
 		   int minLen,
 		   int maxLen,
 		   int (*callback)(const char*, int, int*),
+		   void *user,
 		   int canSame,
 		   int isRandom,
 		   int bruteTime)
@@ -59,7 +60,8 @@ void brute(const char *st,
 									    minLen,
 									    maxLen,
 									    callback,
-									    canSame,
+									    user,
+										canSame,
 									    isRandom,
 									    bruteTime);
 	
