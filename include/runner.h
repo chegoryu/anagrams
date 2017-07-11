@@ -11,7 +11,8 @@ extern "C" {
                int minLen,
                int maxLen,
                int (*callback)(const char*, int, int*),
-               int canSame,
+               void *user,
+			   int canSame,
                int isRandom,
                int bruteTime);
 #ifdef __cplusplus
