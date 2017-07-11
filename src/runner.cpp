@@ -1,4 +1,5 @@
 #include "runner.h"
+#include "engine.h"
 
 bool is_init = false;
 Dict<33> *dict = nullptr;

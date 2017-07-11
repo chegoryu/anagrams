@@ -5,11 +5,12 @@
     <title>Anagrams on web</title>
     <script>
       function fetch(name) {
-          ws = new WebSocket("ws://localhost:3000/ws?" + encodeURIComponent(name));
+          ws = new WebSocket("ws://localhost:3000/ws?q=" + encodeURIComponent(name));
           document.getElementById("responce").innerHTML = "";
           
           ws.onmessage = function(event) {
               resp = document.getElementById("responce");
+              console.log(1);
               event.data.split("\n").forEach(function(elem) {
                   if (elem != "")
                       resp.innerHTML += elem + "<br>";

@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.1)
 project(anagram CXX C)
 
+# find system ICU
+
+find_package(PkgConfig)
+pkg_search_module(ICUUC REQUIRED icu-uc)
+
 # General configuration
 
 set(CMAKE_CXX_STANDARD_REQUIRED 11)
@@ -23,6 +28,7 @@ set (ANAGRAM_SRC src/runner.cpp
                  src/server.c)
 
 include_directories(include)
+include_directories(${ICUUC_INCLUDE_DIRS})               
 add_executable(anagram ${ANAGRAM_SRC})
-target_link_libraries(anagram facil.io)
+target_link_libraries(anagram facil.io ${ICUUC_LIBRARIES})
 #add_custom_command(TARGET anagram PRE_BUILD COMMAND "make libdump" WORKING_DIRECTORY "extern/facil.io")
