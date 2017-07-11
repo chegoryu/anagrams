@@ -1,7 +1,7 @@
 #ifndef __RUNNER_H__
 #define __RUNNER_H__
 
-#include "../Engine/engine.h"
+#include "engine.h"
 
 void initBrute(const char *fileName);
 void delBrute();
