@@ -15,41 +15,44 @@ int main_len;
 
 const char* e404 = "404, there is no such page";
 const char* ebad = "Bad request";
-
 const char* eunexpected = "[unexpected error]";
 
 // VALID ONLY FOR DEMO
-ws_s* cur_ws;
-char outbuf[CONFIG_REQUEST_MAX];
-int num_submit = 0;
+struct request_info {
+    ws_s* ws;
+    int num_found;
+    char tmpbuf[CONFIG_REQUEST_MAX];
+};
 
-int match_callback(const char* data, int words, int* length) {
-    if (++num_submit >= CONFIG_MAX_RESPONCE)
+int match_callback(const char* data, int words, int* length, void* info_) {
+    struct request_info* info = (struct request_info*)info_;
+    
+    if (info->num_found++ >= CONFIG_MAX_RESPONCE)
         return 0;
     
     int inptr = 0;
     int outptr = 0;
     UBool err = 0;
     for (int w = 0; w != words; ++w) {
-        if (outptr == sizeof(outbuf))
+        if (outptr == sizeof(info->tmpbuf))
             goto fail;
 
         if (w != 0)
-            U8_APPEND((uint8_t*)outbuf, outptr, sizeof(outbuf), ' ', err);
+            U8_APPEND((uint8_t*)info->tmpbuf, outptr, sizeof(info->tmpbuf), ' ', err);
 
         if (err)
             goto fail;
 
         for (int i = 0; i != length[w]; ++i, ++inptr) {
-            U8_APPEND((uint8_t*)outbuf, outptr, sizeof(outbuf), data[inptr] + CONFIG_UNI_START, err);
+            U8_APPEND((uint8_t*)info->tmpbuf, outptr, sizeof(info->tmpbuf), data[inptr] + CONFIG_UNI_START, err);
             if (err)
                 goto fail;
         }
     }
-    websocket_write(cur_ws, outbuf, outptr, 1);
+    websocket_write(info->ws, info->tmpbuf, outptr, 1);
     return 1;
 fail:
-    websocket_write(cur_ws, (char*)eunexpected, strlen(eunexpected), 1);
+    websocket_write(info->ws, (char*)eunexpected, strlen(eunexpected), 1);
     return 0;
 }
 
@@ -81,9 +84,10 @@ void ws_open(ws_s* ws) {
             }
         }
 
-        cur_ws = ws;
-        num_submit = 0;
-        brute(request, outptr, 1, 10, match_callback, 0, 0, CONFIG_MAX_TIME);
+        struct request_info r_info;
+        r_info.ws        = ws;
+        r_info.num_found = 0;
+        brute(request, outptr, 1, 10, match_callback, &r_info, 0, 0, CONFIG_MAX_TIME);
 
         free(request);
         websocket_close(ws);

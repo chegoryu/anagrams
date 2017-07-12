@@ -4,12 +4,15 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Anagrams on web</title>
     <script>
-      function fetch(name) {
+      function fetch(name, record) {
           ws = new WebSocket("ws://localhost:3000/ws?q=" + encodeURIComponent(name));
           document.getElementById("responce").innerHTML = "";
-          
+          document.title = "Anagrams on web (" + name + ")";
+
+          if (record)
+              window.history.pushState("","", "?q=" + encodeURIComponent(name));
+      
           ws.onmessage = function(event) {
-              resp = document.getElementById("responce");
               event.data.split("\n").forEach(function(elem) {
                   if (elem != "") {
                       resp.appendChild(document.createTextNode(elem));
@@ -23,7 +26,7 @@
           };
 
           ws.onerror = function(event) {
-              document.getElementById("responce").innerHTML += "Ошибка сети<br>";
+              document.getElementById("responce").innerHTML += "Ошибка сети (попробуйте ещё раз)<br>";
           };
       }
 
@@ -33,9 +36,23 @@
           }
       }
       
-      function search_start(name) {
+      function search_start(name, record) {
           search_stop();
-          fetch(name);
+          document.getElementById("search").value = name;
+          fetch(name, record);
+      }
+
+      function check_get_param() {
+          if (window.location.search.startsWith("?q="))
+              search_start(decodeURIComponent(window.location.search.substr(3, window.location.search.length - 3)), false);
+      }
+
+      function onload() {
+          resp = document.getElementById("responce");
+          window.onpopstate = function(event) {
+              check_get_param();
+          };
+          check_get_param();
       }
     </script>
     <style>
@@ -80,12 +97,12 @@
       }
     </style>
   </head>
-  <body>
+  <body onload="onload()">
     <div class="header">
        <div class="logoimg"></div>
-       <form onsubmit="search_start(this.children[0].children[0].value); return false">
+       <form onsubmit="search_start(this.children[0].children[0].value, true); return false">
          <div class="formelem formtext">
-           <input class="forminside" type="text"/>
+           <input class="forminside" id="search" type="text"/>
          </div>
          <div class="formelem formbtn">
            <input class="forminside" type="submit" value="Отправить"/>

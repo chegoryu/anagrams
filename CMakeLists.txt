@@ -31,4 +31,4 @@ include_directories(include)
 include_directories(${ICUUC_INCLUDE_DIRS})               
 add_executable(anagram ${ANAGRAM_SRC})
 target_link_libraries(anagram facil.io ${ICUUC_LIBRARIES})
-#add_custom_command(TARGET anagram PRE_BUILD COMMAND "make libdump" WORKING_DIRECTORY "extern/facil.io")
+
