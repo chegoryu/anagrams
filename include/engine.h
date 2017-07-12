@@ -92,6 +92,7 @@ private:
 	int startTime;
 	int iter;
 	int haveLetters;
+	int permutation[ALPH];
 };
 
 template<int ALPH>
@@ -260,7 +261,39 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 	isRandom = _isRandom;
 	bruteTime = _bruteTime;
 	
+	for (size_t i = 0; i < ALPH; ++i)
+	{
+		permutation[i] = i;
+	}
+
 	iter = 0;
+
+	if (isRandom > 0)
+	{
+		std::mt19937 rnd;
+		rnd.seed(isRandom);
+		std::shuffle(permutation, permutation + ALPH, rnd);
+
+		std::vector<std::pair<char, int>> newToFind;
+		
+		for (size_t i = 0; i < ALPH; ++i)
+		{
+			for (size_t j = 0; j < toFind.size(); ++j)
+			{
+				if (toFind[j].first == permutation[i])
+				{
+					newToFind.push_back(toFind[j]);
+					newToFind.back().first = i;
+					break;
+				}
+			}
+		}
+
+		assert(toFind.size() == newToFind.size());
+		toFind.swap(newToFind);
+		newToFind.resize(0);
+		newToFind.shrink_to_fit();
+	}
 }
 
 template<int ALPH>
@@ -289,13 +322,6 @@ Finder<ALPH>::~Finder()
 template<int ALPH>
 void Finder<ALPH>::startFind()
 {
-	if (isRandom > 0)
-	{
-		std::mt19937 rnd;
-		rnd.seed(isRandom);
-		std::shuffle(toFind.begin(), toFind.end(), rnd);
-	}
-	
 	startTime = clock();
 	findVertex(0);
 }
@@ -351,9 +377,9 @@ bool Finder<ALPH>::findVertex(int v)
 		if (toFind[i].second > now[i])
 		{
 			addLetter(i);
-			if (dict->nextNode(v, toFind[i].first) != -1 && checkGo())
+			if (dict->nextNode(v, permutation[(int)toFind[i].first]) != -1 && checkGo())
 			{
-				if (!findVertex(dict->nextNode(v, toFind[i].first)))
+				if (!findVertex(dict->nextNode(v, permutation[(int)toFind[i].first])))
 				{
 					return false;
 				}
@@ -393,7 +419,7 @@ void Finder<ALPH>::convert_answer(char *&st,
 	{
 		for (size_t j = 0; j < findNow[i].size(); ++j)
 		{
-			st[ptr++] = findNow[i][j];
+			st[ptr++] = permutation[(int)findNow[i][j]];
 		}
 	}
 	assert(ptr == sz);
@@ -433,26 +459,17 @@ void Finder<ALPH>::delLetter(int letter)
 template<int ALPH>
 bool Finder<ALPH>::checkGo()
 {
-	if (isRandom)
-	{
-		return true;
-	}
-
 	if (findNow.size() == 1)
 	{
 		return true;
 	}
+	
 	return findNow.back() >= findNow[(int)findNow.size() - 2];
 }
 
 template<int ALPH>
 bool Finder<ALPH>::checkUp()
 {
-	if (isRandom)
-	{
-		return true;
-	}
-
 	if (findNow.size() == 1)
 	{
 		return true;
