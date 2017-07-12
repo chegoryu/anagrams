@@ -10,7 +10,7 @@ extern "C" {
                int length,
                int minLen,
                int maxLen,
-               int (*callback)(const char*, int, int*),
+               int (*callback)(const char*, int, int*, void*),
                void *user,
 			   int canSame,
                int isRandom,
