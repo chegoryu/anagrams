@@ -87,7 +87,7 @@ void ws_open(ws_s* ws) {
         struct request_info r_info;
         r_info.ws        = ws;
         r_info.num_found = 0;
-        brute(request, outptr, 1, 10, match_callback, &r_info, 0, 0, CONFIG_MAX_TIME);
+        brute(request, outptr, 1, 10, match_callback, &r_info, 0, 0, 0, CONFIG_MAX_TIME);
 
         free(request);
         websocket_close(ws);

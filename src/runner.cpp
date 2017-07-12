@@ -1,8 +1,9 @@
 #include "runner.h"
 #include "engine.h"
+#include "config.h"
 
 bool is_init = false;
-Dict<33> *dict = nullptr;
+Dict<CONFIG_ALPH_SIZE> *dict = nullptr;
 
 void initBrute(const char *fileName)
 {
@@ -10,7 +11,7 @@ void initBrute(const char *fileName)
 	{
 		is_init = true;
 		
-		dict = new Dict<33>;
+		dict = new Dict<CONFIG_ALPH_SIZE>();
 		dict->createDict(fileName);
 	}
 }
@@ -28,6 +29,7 @@ void brute(const char *st,
 		   int maxLen,
 		   int (*callback)(const char*, int, int*, void*),
 		   void *user,
+		   int acceptBadTail,
 		   int canSame,
 		   int isRandom,
 		   int bruteTime)
@@ -55,15 +57,16 @@ void brute(const char *st,
 		}
 	}
 
-	Finder<33> *finder = new Finder<33>(dict,
-									    arr,
-									    minLen,
-									    maxLen,
-									    callback,
-									    user,
-										canSame,
-									    isRandom,
-									    bruteTime);
+	Finder<CONFIG_ALPH_SIZE> *finder = new Finder<CONFIG_ALPH_SIZE>(dict,
+									    							arr,
+									    							minLen,
+									    							maxLen,
+									    							callback,
+									    							user,
+																	acceptBadTail,
+																	canSame,
+									    							isRandom,
+									    							bruteTime);
 	
 	finder->startFind();
 	delete finder;

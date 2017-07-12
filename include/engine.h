@@ -57,8 +57,9 @@ public:
 		   int _minLen,
 		   int _maxLen,
 		   int (*_callback)(const char*, int, int*, void*),
-		   void *_user,
-		   bool _canSame = false,
+		   void *_user = nullptr,
+		   int _acceptBadTail = 0,
+		   int _canSame = 0,
 		   int _isRandom = 0,
 		   int _bruteTime = 10);	
 	~Finder();
@@ -84,7 +85,8 @@ private:
 	int maxLen;
 	int (*callback)(const char*, int, int*, void*);
 	void *user;
-	bool canSame;
+	int acceptBadTail;
+	int canSame;
 	int isRandom;
 	int bruteTime;
 	int startTime;
@@ -228,7 +230,8 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 					int _maxLen,
 					int (*_callback)(const char*, int, int*, void*),
 					void *_user,
-					bool _canSame,
+					int _acceptBadTail,
+					int _canSame,
 					int _isRandom,
 					int _bruteTime)
 {
@@ -251,7 +254,8 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 	
 	callback = _callback;
 	user = _user;
-
+	
+	acceptBadTail = _acceptBadTail;
 	canSame = _canSame;
 	isRandom = _isRandom;
 	bruteTime = _bruteTime;
@@ -274,8 +278,9 @@ Finder<ALPH>::~Finder()
 	maxLen = 0;
 	callback = nullptr;
 	user = nullptr;
-	canSame = false;
-	isRandom = false;
+	acceptBadTail = 0;
+	canSame = 0;
+	isRandom = 0;
 	bruteTime = 0;
 	startTime = 0;
 	iter = 0;
@@ -304,6 +309,14 @@ bool Finder<ALPH>::findVertex(int v)
 		return false;
 	}
 	
+	if (acceptBadTail && v == 0 && (int)findNow.size() - 1 >= minLen)
+	{
+		if (!returnAnswer())
+		{
+			return false;
+		}
+	}
+
 	if (haveLetters != 0 && v == 0 && (int)findNow.size() - 1 == maxLen)
 	{
 		return true;
@@ -316,7 +329,7 @@ bool Finder<ALPH>::findVertex(int v)
 
 	if (haveLetters == 0 && v == 0)
 	{
-		if (!returnAnswer())
+		if (!acceptBadTail && !returnAnswer())
 		{
 			return false;
 		}

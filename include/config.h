@@ -12,4 +12,6 @@
 
 #define CONFIG_DICT_PATH "dict.utf8"
 
+#define CONFIG_ALPH_SIZE 33 // size of alphabet
+
 #endif

@@ -12,6 +12,7 @@ extern "C" {
                int maxLen,
                int (*callback)(const char*, int, int*, void*),
                void *user,
+			   int acceptBadTail,
 			   int canSame,
                int isRandom,
                int bruteTime);
