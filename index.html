@@ -4,8 +4,17 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Anagrams on web</title>
     <script>
+      function get_request_url() {
+          if (document.location.protocol == "http:")
+              return "ws://" + document.location.host + "/ws";
+          else if (document.location.protocol == "https:")
+              return "wss://" + document.location.host + "/ws";
+          else
+              return "wtf://" + document.location.host + "/ws";
+      }
+      
       function fetch(name, record) {
-          ws = new WebSocket("ws://localhost:3000/ws?q=" + encodeURIComponent(name));
+          ws = new WebSocket(get_request_url() + "?q=" + encodeURIComponent(name));
           document.getElementById("responce").innerHTML = "";
           document.title = "Anagrams on web (" + name + ")";
 
@@ -26,7 +35,8 @@
           };
 
           ws.onerror = function(event) {
-              document.getElementById("responce").innerHTML += "Ошибка сети (попробуйте ещё раз)<br>";
+              resp.appendChild(document.createTextNode("Ошибка сети (попробуйте ещё раз)"));
+              resp.appendChild(document.createElement("br"));
           };
       }
 
@@ -65,7 +75,6 @@
          width: 100%;
       }
       .header {
-         height: 32px;
          background-color: #DEF7F6;
       }
       .formelem { 
@@ -82,6 +91,9 @@
       }
       .formtext {
          width: 200px;
+      }
+      .clearleft {
+         clear: left;
       }
       div.logoimg {
          height: 32px;
@@ -108,6 +120,7 @@
            <input class="forminside" type="submit" value="Отправить"/>
          </div>
        </form>
+       <div class="clearleft"></div>
     </div>
     
     <div id="responce">
