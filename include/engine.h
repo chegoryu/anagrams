@@ -159,7 +159,8 @@ void Dict<ALPH>::createDict(const char *fileName)
 	std::wifstream in(fileName);
 	std::vector<char> now;
 
-	std::cerr << "Start build dict" << std::endl;
+	std::cerr << "started building dict" << std::endl;
+	
 	while (in >> st)
 	{
 		now.clear();
@@ -178,8 +179,10 @@ void Dict<ALPH>::createDict(const char *fileName)
 
 		add(now);
 	}
-	std::cerr << "End build dict" << std::endl;
-	std::cerr << "Nodes created: " << nodeNow << std::endl;
+	
+	std::cerr << "finished building dict" << std::endl;
+	std::cerr << "nodes created: " << nodeNow << std::endl;
+	
 	in.close();
 }
 
