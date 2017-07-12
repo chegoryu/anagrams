@@ -158,7 +158,7 @@ void Dict<ALPH>::createDict(const char *fileName)
 	std::wifstream in(fileName);
 	std::vector<char> now;
 
-	std::cerr << "START BUILD" << std::endl;
+	std::cerr << "Start build dict" << std::endl;
 	while (in >> st)
 	{
 		now.clear();
@@ -177,8 +177,8 @@ void Dict<ALPH>::createDict(const char *fileName)
 
 		add(now);
 	}
-	std::cerr << "END BUILD" << std::endl;
-	std::cerr << nodeNow << std::endl;
+	std::cerr << "End build dict" << std::endl;
+	std::cerr << "Nodes created: " << nodeNow << std::endl;
 	in.close();
 }
 
@@ -339,7 +339,10 @@ bool Finder<ALPH>::findVertex(int v)
 	if (dict->isTermNode(v) && checkUp())
 	{
 		findNow.push_back(std::vector<char>(0));
-		findVertex(0);
+		if (!findVertex(0))
+		{
+			return false;
+		}
 		findNow.pop_back();
 	}
 
