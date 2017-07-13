@@ -11,7 +11,10 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unicode/utf8.h>
+#include <unicode/uchar.h>
 
+#include "config.h"
 
 template<int ALPH>
 class Node
@@ -154,9 +157,12 @@ Dict<ALPH>::~Dict()
 template<int ALPH>
 void Dict<ALPH>::createDict(const char *fileName)
 {
-	std::locale::global(std::locale("")); // I don't know why but it needed	
-	std::wstring st;
-	std::wifstream in(fileName);
+	// we assume, that dict is given in UTF-8 format.
+	// due to internal structure UTF-8 is safe to be read/stored as simple 8-bit data.
+	// the only thing, which should be done specially is non-ascii interpretation.
+	
+	std::string st;
+	std::ifstream in(fileName);
 	std::vector<char> now;
 
 	std::cerr << "started building dict" << std::endl;
@@ -164,17 +170,22 @@ void Dict<ALPH>::createDict(const char *fileName)
 	while (in >> st)
 	{
 		now.clear();
-		now.resize(st.size());
-		for (size_t i = 0; i < st.size(); ++i)
+		int ptr = 0;
+		UChar32 ch;
+
+		while (ptr != int(st.size()))
 		{
-			if (st[i] >= L'А' && st[i] <= L'Я')
-			{
-				st[i] = st[i] - L'А' + L'а';
-			}
+			U8_NEXT(st.data(), ptr, int(st.size()), ch);
+			if (ch < 0)
+				goto char_fail;
 			
-			assert(st[i] >= L'а' && st[i] <= L'я');
-			now[i] = st[i] - L'а';
-			assert(now[i] >= 0 && now[i] < ALPH);
+			ch = u_tolower(ch);
+			if (not (CONFIG_UNI_START <= ch and ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE))
+				goto char_fail;
+			now.push_back(ch - CONFIG_UNI_START);
+			continue;
+char_fail:
+			throw std::runtime_error("Invalid character in dict file");
 		}
 
 		add(now);
@@ -182,8 +193,6 @@ void Dict<ALPH>::createDict(const char *fileName)
 	
 	std::cerr << "finished building dict" << std::endl;
 	std::cerr << "nodes created: " << nodeNow << std::endl;
-	
-	in.close();
 }
 
 template<int ALPH>

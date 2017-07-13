@@ -1,6 +1,6 @@
 #include "websockets.h"
 #include <unicode/utf8.h>
-#include <unicode/utypes.h>
+#include <unicode/uchar.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,8 +76,8 @@ void ws_open(ws_s* ws) {
 
             ch = u_tolower(ch);
             
-            if (CONFIG_UNI_START <= u_tolower(ch) && u_tolower(ch) < CONFIG_UNI_START + 33)
-                request[outptr++] = u_tolower(ch) - CONFIG_UNI_START;
+            if (CONFIG_UNI_START <= ch && ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE)
+                request[outptr++] = ch - CONFIG_UNI_START;
             else if (ch != ' ') {
                 free(request);
                 goto fail;
