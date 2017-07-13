@@ -44,7 +44,12 @@ void brute(const char *st,
 	}
 
 	std::sort(vst.begin(), vst.end());
-	arr.push_back({vst[0], 1});
+	
+	if (!vst.empty())
+	{
+		arr.push_back({vst[0], 1});
+	}
+
 	for (int i = 1; i < length; ++i)
 	{
 		if (arr.back().first == vst[i])
