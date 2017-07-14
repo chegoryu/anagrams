@@ -26,7 +26,8 @@ add_subdirectory(extern/facil.io)
 # Build us.
 
 set (ANAGRAM_SRC src/runner.cpp
-                 src/server.c)
+                 src/server.c
+                 src/remap.c)
 
 include_directories(include)
 include_directories(${ICUUC_INCLUDE_DIRS})               

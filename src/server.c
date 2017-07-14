@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "runner.h"
+#include "remap.h"
 
 char* main_page;
 int main_len;
@@ -113,10 +114,10 @@ void ws_open(ws_s* ws) {
             while (peq[inptr] != 0) {
                 UChar32 ch;
                 U8_NEXT(peq, inptr, -1, ch);
-                if (ch < 0)
-                    goto fail;
+                ch = remap(ch);	
                 
-                ch = u_tolower(ch);
+                if (ch < 0)
+                   goto fail;
                 
                 if (CONFIG_UNI_START <= ch && ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE)
                     request[outptr++] = ch - CONFIG_UNI_START;
