@@ -23,6 +23,10 @@
       }
 
       function import_form_data(txt) {
+          search.value = "";
+          wmin.value = "";
+          wmax.value = "";
+      
           txt.split('&').forEach(function(p) {
               var ps = p.split('=');
               if (ps.length == 2) {
@@ -99,9 +103,9 @@
       }
 
       function check_get_param() {
-          if (window.location.search != "") {
-              import_form_data(window.location.search);
-              search_start();
+          if (window.location.search.startsWith("?")) {
+              import_form_data(window.location.search.substr(1, window.location.search.length - 1));
+              search_start(false);
           }
       }
 
