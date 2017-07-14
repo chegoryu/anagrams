@@ -8,6 +8,7 @@ pkg_search_module(ICUUC REQUIRED icu-uc)
 
 # General configuration
 
+add_definitions(-D_POSIX_C_SOURCE)
 set(CMAKE_CXX_STANDARD_REQUIRED 11)
 set(CMAKE_C_STANDARD_REQUIRED 11)
 

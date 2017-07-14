@@ -2,10 +2,6 @@
 #include <unicode/utf8.h>
 #include <unicode/uchar.h>
 
-#ifndef _POSIX_C_SOURCE
-#define _POSIX_C_SOURCE
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
