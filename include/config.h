@@ -20,5 +20,6 @@
 #define CONFIG_LIMIT_WORDS_MIN 1
 #define CONFIG_LIMIT_WORDS_MAX 10
 
+#define CONFIG_REMAP {{1105, 1077} /*e: -> e*/} 
 
 #endif
