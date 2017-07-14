@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "config.h"
 #include "runner.h"
@@ -16,8 +17,9 @@ int main_len;
 const char* e404 = "404, there is no such page";
 const char* ebad = "Bad request";
 const char* eunexpected = "[unexpected error]";
+const char* enomem      = "[server used too much memory]";
 
-// VALID ONLY FOR DEMO
+
 struct request_info {
     ws_s* ws;
     int num_found;
@@ -56,44 +58,112 @@ fail:
     return 0;
 }
 
+int string_to_num_simple(char* str) {
+    int r = 0;
+    char* p;
+    
+    for (p = str; *p != 0 && p - str <= 6; ++p) {
+        if (*p < '0' || '9' < *p) {
+            errno = EINVAL;
+            return -1;
+        }
+        r = 10 * r + (*p - '0');
+    }
+
+    if (*p == 0)
+        return r;
+    errno = EINVAL;
+    return -1;
+}
+
 void ws_open(ws_s* ws) {
     fprintf(stderr, "Opened a new websocket connection (%p)\n", (void*)ws);
     
-    if (websocket_udata(ws) != NULL) {
-        const char* udata       = websocket_udata(ws);
-        int32_t udata_len = strlen(udata);
-        
-        char* request = malloc(udata_len + 1);
-        int32_t inptr = 0, outptr = 0;
-        
-        while (inptr != udata_len) {
-            UChar32 ch;
-            U8_NEXT(udata, inptr, udata_len, ch);
-            if (ch < 0) { 
-                free(request);
-                goto fail;
-            }
+    char* udata  = websocket_udata(ws);
+    int32_t udata_len  = udata == NULL ? -1 : (int)strlen(udata);
+    char* request      = udata_len == -1 ? NULL : malloc(udata_len + 1);
 
-            ch = u_tolower(ch);
-            
-            if (CONFIG_UNI_START <= ch && ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE)
-                request[outptr++] = ch - CONFIG_UNI_START;
-            else if (ch != ' ') {
-                free(request);
-                goto fail;
-            }
-        }
-
-        struct request_info r_info;
-        r_info.ws        = ws;
-        r_info.num_found = 0;
-        brute(request, outptr, 1, 10, match_callback, &r_info, 0, 0, 0, CONFIG_MAX_TIME);
-
-        free(request);
+    if (request == NULL) {
+        websocket_write(ws, (char*)enomem, strlen(enomem), 1);
         websocket_close(ws);
-        return;
     }
+    
+    int wmin = -1;
+    int wmax = -1;
+
+    int32_t outptr = 0;
+    
+    char* strtok_save;
+    for (;; udata = NULL) {
+        char* tok = strtok_r(udata, "&", &strtok_save);
+        if (tok == NULL)
+            break;
+
+        char* peq = strchr(tok, '=');
+        if (peq != NULL)
+            *peq = 0;
+            
+        if (strcmp(tok, "q") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            int32_t inptr = 0;
+            
+            while (peq[inptr] != 0) {
+                UChar32 ch;
+                U8_NEXT(peq, inptr, -1, ch);
+                if (ch < 0)
+                    goto fail;
+                
+                ch = u_tolower(ch);
+                
+                if (CONFIG_UNI_START <= ch && ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE)
+                    request[outptr++] = ch - CONFIG_UNI_START;
+                else if (ch != ' ')
+                    goto fail;
+            }
+        } else if (strcmp(tok, "wmin") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            errno = 0;
+            wmin = string_to_num_simple(peq);
+            if (errno != 0)
+                goto fail;
+        } else if (strcmp(tok, "wmax") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            errno = 0;
+            wmax = string_to_num_simple(peq);
+            if (errno != 0)
+                goto fail;
+        }
+    }
+        
+    struct request_info r_info;
+    r_info.ws        = ws;
+    r_info.num_found = 0;
+
+    if (wmin == -1)
+        wmin = CONFIG_DEFAULT_WORDS_MIN;
+    if (wmax == -1)
+        wmax = CONFIG_DEFAULT_WORDS_MAX;
+
+    if (wmin < CONFIG_LIMIT_WORDS_MIN || wmax > CONFIG_LIMIT_WORDS_MAX || wmin > wmax)
+        goto fail;
+    
+    brute(request, outptr, wmin, wmax, match_callback, &r_info, 0, 0, 0, CONFIG_MAX_TIME);
+
+    free(request);
+    websocket_close(ws);
+    return;
+        
 fail:;
+    free(request);
     websocket_write(ws, (char*)ebad, strlen(ebad), 1);
     websocket_close(ws);
 }
@@ -112,11 +182,11 @@ void on_request(http_request_s* request) {
     // websocket upgrade.
     if (request->upgrade) {
         if (strcmp(request->path, "/ws") == 0) {
-            char* udata = NULL;
-            if (strncmp(request->query, "q=", 2) == 0 && strlen(request->query) < CONFIG_REQUEST_MAX) {
-                udata = malloc(strlen(request->query) + 1);
-                http_decode_path_unsafe(udata, request->query + 2);
-            }
+            char* udata = malloc(strlen(request->query) + 1);
+            if (udata == NULL)
+                return;
+            
+            http_decode_path_unsafe(udata, request->query);
             
             websocket_upgrade(.request = request,
                               .on_open = ws_open, .on_close = ws_close,

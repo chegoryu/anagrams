@@ -12,6 +12,13 @@
 
 #define CONFIG_DICT_PATH "dict.utf8"
 
-#define CONFIG_ALPH_SIZE 33 // size of alphabet
+#define CONFIG_ALPH_SIZE 32 // size of alphabet
+
+#define CONFIG_DEFAULT_WORDS_MIN 1
+#define CONFIG_DEFAULT_WORDS_MAX 10
+
+#define CONFIG_LIMIT_WORDS_MIN 1
+#define CONFIG_LIMIT_WORDS_MAX 10
+
 
 #endif

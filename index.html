@@ -12,14 +12,61 @@
           else
               return "wtf://" + document.location.host + "/ws";
       }
-      
-      function fetch(name, record) {
-          ws = new WebSocket(get_request_url() + "?q=" + encodeURIComponent(name));
+
+      function describe_form() {
+          var r = "q=" + encodeURIComponent(search.value);
+          if (wmin.value != "")
+              r += "&wmin=" + wmin.value;
+          if (wmax.value != "")
+              r += "&wmax=" + wmax.value;
+          return r;
+      }
+
+      function import_form_data(txt) {
+          txt.split('&').forEach(function(p) {
+              var ps = p.split('=');
+              if (ps.length == 2) {
+                  ps[1] = decodeURIComponent(ps[1]);
+                  if (ps[0] == "q")
+                      search.value = ps[1];
+                  else if (ps[0] == "wmin")
+                      wmin.value = ps[1];
+                  else if (ps[0] == "wmax")
+                      wmax.value = ps[1];
+              }
+          });
+      }
+
+      function as_text(form_info) {
+          var q = "";
+          var mn = "";
+          var mx = "";
+          form_info.split('&').forEach(function(p) {
+              var ps = p.split('=');
+              if (ps.length == 2) {
+                  ps[1] = decodeURIComponent(ps[1]);
+                  if (ps[0] == "q")
+                      q = ps[1];
+                  else if (ps[0] == "wmin")
+                      mn = ps[1];
+                  else if (ps[0] == "wmax")
+                      mx = ps[1];
+              }
+          });
+
+          var r = q;
+          if (mn != "" || mx != "")
+              r += "; " + (mn == "" ? "1" : mn) + ".." + (mx == "" ? "inf" : mx);
+          return r;
+      }
+
+      function fetch(form_info, record) {
+          ws = new WebSocket(get_request_url() + "?" + form_info);
           document.getElementById("responce").innerHTML = "";
-          document.title = "Anagrams on web (" + name + ")";
+          document.title = "Anagrams on web (" + as_text(form_info) + ")";
 
           if (record)
-              window.history.pushState("","", "?q=" + encodeURIComponent(name));
+              window.history.pushState("","", "?" + form_info);
       
           ws.onmessage = function(event) {
               event.data.split("\n").forEach(function(elem) {
@@ -46,19 +93,23 @@
           }
       }
       
-      function search_start(name, record) {
+      function search_start(record) {
           search_stop();
-          document.getElementById("search").value = name;
-          fetch(name, record);
+          fetch(describe_form(), record);
       }
 
       function check_get_param() {
-          if (window.location.search.startsWith("?q="))
-              search_start(decodeURIComponent(window.location.search.substr(3, window.location.search.length - 3)), false);
+          if (window.location.search != "") {
+              import_form_data(window.location.search);
+              search_start();
+          }
       }
 
       function onload() {
-          resp = document.getElementById("responce");
+          resp   = document.getElementById("responce");
+          search = document.getElementById("search");
+          wmin   = document.getElementById("search_wmin");
+          wmax   = document.getElementById("search_wmax");
           window.onpopstate = function(event) {
               check_get_param();
           };
@@ -73,24 +124,31 @@
       }
       body {
          width: 100%;
+         min-width: 500px;
       }
       .header {
          background-color: #DEF7F6;
       }
-      .formelem { 
+      form > div { 
          height: 21px;
          margin-top: 5px;
          margin-bottom: 5px;
-         float: left;
          margin-left: 5px;
          border: 0.5px solid black;
+         display: inline-block;
       }
-      .forminside {
+      .forminfo { 
+         border: 0px;
+      }
+      form > div > input {
          height: 100%;
          width: 100%;
       }
-      .formtext {
+      #search {
          width: 200px;
+      }
+      input[type=number] {
+         width: 30px;
       }
       .clearleft {
          clear: left;
@@ -99,10 +157,17 @@
          height: 32px;
          width: 40px;
          margin-right: 5px;
-         float: left;
          background-size: cover;
          background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABACAYAAACNx/A2AAAACXBIWXMAAAsTAAALEwEAmpwYAAABfUlEQVR42u2cQa7CMAwF4akb/i3g/meCW8CSv0UI2iSN7cSMl1Rqm+m82m0ljtfH/XmgmksgACAAAQhACoAABCAAKQACcLZaeu7scvr7+Pv1cQ9d5PnLed06nJes4W1ti4K3tY0IZ7sHRlrYaqgbwKxwiHC2MSajqbKCknl0MTdwDV6khWvwWi0UkRzMwFf7omP8zb6eMQ7pwpnMlTUEbwtLIfSyUFbxHaluhuelqAhaxLhH86jdh8s9MLOZioTk0UxaINVYqBEXPfrs193AEvsiYlxi394Yh7+Nmd1oeS7WysK98d1joTziG2Fhjw5bcmH0K1Gb5mXCr82EGgVGT8N7PrptGS7iu6+WUayZFaxGglRzLE9Ia8fis+ZsXTjbbWFpWUx09/X4ZGnyKJdxjksX4dlirOhF1Brt1X1Ljdao8a25gJ7xfb+AYkBOcA+cuTFp5EWWJCGi+74mQcQ3yRgza4yP/GdCwkEagACkAAhAAAKQAiAAAQhAaq3+ASL/kJynYzgXAAAAAElFTkSuQmCC);
+        float: left;
       }
+      #formchkb {
+         height: 100%;
+      }
+      #formchkb:checked ~ label {
+         background-color: black;
+      }
+      
       #responce {
          margin-top: 10px;
          margin-left: 10px;
@@ -112,17 +177,35 @@
   <body onload="onload()">
     <div class="header">
        <div class="logoimg"></div>
-       <form onsubmit="search_start(this.children[0].children[0].value, true); return false">
-         <div class="formelem formtext">
-           <input class="forminside" id="search" type="text"/>
+       <form onsubmit="search_start(true); return false">
+         <div>
+           <input id="search" type="text" placeholder="Александр Пушкин"/>
          </div>
-         <div class="formelem formbtn">
-           <input class="forminside" type="submit" value="Отправить"/>
+         <div class="forminfo">от</div>
+         <div class="formbtn">
+           <input id="search_wmin" type="number" placeholder="1" min="1" max="10"/>
          </div>
+         <div class="forminfo">до</div>
+         <div class="formbtn">
+           <input id="search_wmax" type="number" placeholder="10" min="1" max="10"/>
+         </div>
+         <div class="forminfo">слов</div>
+         <div class="formbtn">
+           <input type="submit" value="Отправить"/>
+         </div>
+         <!-- <div class="formchkb"> -->
+         <!--   <input  id="formchkb" type="checkbox" style="opacity: 0; width: 0; height: 0"/> -->
+         <!--   <label for="formchkb">...</label> -->
+         <!-- </div> -->
+         <!-- <div class="formchkb"> -->
+         <!--   <label><input id="formchkb2" type="checkbox" hidden/>...</label> -->
+         <!-- </div> -->
+
        </form>
        <div class="clearleft"></div>
     </div>
-    
+
+    <noscript>Для работы данной страницы необходим javascript</noscript>
     <div id="responce">
     </div>
   </body>
