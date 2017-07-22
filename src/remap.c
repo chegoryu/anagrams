@@ -1,8 +1,8 @@
 #include "remap.h"
 #include "config.h"
 
-int remaps[][2] = CONFIG_REMAP;
-int remap_sz = sizeof(remaps) / sizeof(remaps[0]);
+static const int remaps[][2] = CONFIG_REMAP;
+#define REMAPS_SZ (int)(sizeof(remaps) / sizeof(remaps[0]))
 
 UChar32 remap(UChar32 c)
 {
@@ -13,7 +13,7 @@ UChar32 remap(UChar32 c)
 
 	c = u_tolower(c);
 
-	for (int i = 0; i < remap_sz; ++i)
+	for (int i = 0; i < REMAPS_SZ; ++i)
 	{
 		if (c == remaps[i][0])
 		{
