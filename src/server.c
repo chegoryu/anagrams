@@ -91,7 +91,10 @@ void ws_open(ws_s* ws) {
     
     int wmin = -1;
     int wmax = -1;
-
+    int dups   = 0;
+    int incomp = 0;
+    int rs     = 0;
+    
     int32_t outptr = 0;
     
     char* strtok_save;
@@ -142,9 +145,28 @@ void ws_open(ws_s* ws) {
             wmax = string_to_num_simple(peq);
             if (errno != 0)
                 goto fail;
+        } else if (strcmp(tok, "r") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            errno = 0;
+            rs    = string_to_num_simple(peq);
+            if (errno != 0)
+                goto fail;
+        } else if (strcmp(tok, "dups") == 0) {
+            if (peq != NULL)
+                goto fail;
+            dups = 1;
+        } else if (strcmp(tok, "inc") == 0) {
+            if (peq != NULL)
+                goto fail;
+            incomp = 1;
+        } else {
+            goto fail;
         }
     }
-        
+    
     struct request_info r_info;
     r_info.ws        = ws;
     r_info.num_found = 0;
@@ -157,7 +179,7 @@ void ws_open(ws_s* ws) {
     if (wmin < CONFIG_LIMIT_WORDS_MIN || wmax > CONFIG_LIMIT_WORDS_MAX || wmin > wmax)
         goto fail;
     
-    brute(request, outptr, wmin, wmax, match_callback, &r_info, 0, 0, 0, CONFIG_MAX_TIME);
+    brute(request, outptr, wmin, wmax, match_callback, &r_info, incomp, dups, rs, CONFIG_MAX_TIME);
 
     free(request);
     websocket_close(ws);
