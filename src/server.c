@@ -148,6 +148,24 @@ void ws_open(ws_s* ws) {
             wmax = string_to_num_simple(peq);
             if (errno != 0)
                 goto fail;
+        } else if (strcmp(tok, "lmin") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            errno = 0;
+            lmin = string_to_num_simple(peq);
+            if (errno != 0)
+                goto fail;
+        } else if (strcmp(tok, "lmax") == 0) {
+            if (peq == NULL)
+                goto fail;
+            ++peq;
+            
+            errno = 0;
+            lmax = string_to_num_simple(peq);
+            if (errno != 0)
+                goto fail;
         } else if (strcmp(tok, "r") == 0) {
             if (peq == NULL)
                 goto fail;

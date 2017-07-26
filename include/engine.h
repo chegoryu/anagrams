@@ -207,7 +207,8 @@ void Dict<ALPH>::add(const std::vector<char> &st)
 	{
 		if (nextNode(now, (int)st[i]) == -1)
 		{
-			nodes[now].setNext((int)st[i], newNode(false));
+			int temp = newNode(false);
+			nodes[now].setNext((int)st[i], temp);
 		}
 		now = nextNode(now, (int)st[i]);
 	}
