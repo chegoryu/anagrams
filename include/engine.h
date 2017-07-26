@@ -59,6 +59,8 @@ public:
 		   const std::vector<std::pair<char, int>> &_toFind,
 		   int _minLen,
 		   int _maxLen,
+		   int _minWordLen,
+		   int _maxWordLen,
 		   int (*_callback)(const char*, int, int*, void*),
 		   void *_user = nullptr,
 		   int _acceptBadTail = 0,
@@ -86,6 +88,8 @@ private:
 	std::vector<std::vector<char>> findNow;
 	int minLen;
 	int maxLen;
+	int minWordLen;
+	int maxWordLen;
 	int (*callback)(const char*, int, int*, void*);
 	void *user;
 	int acceptBadTail;
@@ -241,6 +245,8 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 					const std::vector<std::pair<char, int>> &_toFind,
 					int _minLen,
 					int _maxLen,
+					int _minWordLen,
+					int _maxWordLen,
 					int (*_callback)(const char*, int, int*, void*),
 					void *_user,
 					int _acceptBadTail,
@@ -265,6 +271,9 @@ Finder<ALPH>::Finder(Dict<ALPH> *_dict,
 	minLen = _minLen;
 	maxLen = _maxLen;
 	
+	minWordLen = _minWordLen;
+	maxWordLen = _maxWordLen;
+
 	callback = _callback;
 	user = _user;
 	
@@ -321,6 +330,8 @@ Finder<ALPH>::~Finder()
 	dict = nullptr;
 	minLen = 0;
 	maxLen = 0;
+	minWordLen = 0;
+	maxWordLen = 0;
 	callback = nullptr;
 	user = nullptr;
 	acceptBadTail = 0;
@@ -484,16 +495,16 @@ bool Finder<ALPH>::checkUp()
 {
 	if (findNow.size() == 1)
 	{
-		return true;
+		return minWordLen <= (int)findNow.back().size() && (int)findNow.back().size() <= maxWordLen;
 	}
 
 	if (canSame)
 	{
-		return findNow.back() >= findNow[(int)findNow.size() - 2];
+		return minWordLen <= (int)findNow.back().size() && (int)findNow.back().size() <= maxWordLen  && findNow.back() >= findNow[(int)findNow.size() - 2];
 	}
 	else
 	{
-		return findNow.back() > findNow[(int)findNow.size() - 2];
+		return minWordLen <= (int)findNow.back().size() && (int)findNow.back().size() <= maxWordLen && findNow.back() > findNow[(int)findNow.size() - 2];
 	}
 }
 

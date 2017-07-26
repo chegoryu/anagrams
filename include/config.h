@@ -16,9 +16,13 @@
 
 #define CONFIG_DEFAULT_WORDS_MIN 1
 #define CONFIG_DEFAULT_WORDS_MAX 10
-
 #define CONFIG_LIMIT_WORDS_MIN 1
 #define CONFIG_LIMIT_WORDS_MAX 10
+
+#define CONFIG_DEFAULT_SYMB_MIN 1
+#define CONFIG_DEFAULT_SYMB_MAX 99
+#define CONFIG_LIMIT_SYMB_MIN 1
+#define CONFIG_LIMIT_SYMB_MAX 99
 
 #define CONFIG_REMAP {{1105, 1077}, /*'e:'  -> 'e' */ \
                       {44, 32},     /* ','  -> ''  */ \

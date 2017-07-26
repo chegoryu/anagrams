@@ -91,6 +91,9 @@ void ws_open(ws_s* ws) {
     
     int wmin = -1;
     int wmax = -1;
+    int lmin = -1;
+    int lmax = -1;
+    
     int dups   = 0;
     int incomp = 0;
     int rs     = 0;
@@ -176,10 +179,19 @@ void ws_open(ws_s* ws) {
     if (wmax == -1)
         wmax = CONFIG_DEFAULT_WORDS_MAX;
 
+    if (lmin == -1)
+        lmin = CONFIG_DEFAULT_SYMB_MIN;
+    if (lmax == -1)
+        lmax = CONFIG_DEFAULT_SYMB_MAX;
+
+    
     if (wmin < CONFIG_LIMIT_WORDS_MIN || wmax > CONFIG_LIMIT_WORDS_MAX || wmin > wmax)
         goto fail;
+
+    if (lmin < CONFIG_LIMIT_SYMB_MIN || lmax > CONFIG_LIMIT_SYMB_MAX || lmin > lmax)
+        goto fail;
     
-    brute(request, outptr, wmin, wmax, match_callback, &r_info, incomp, dups, rs, CONFIG_MAX_TIME);
+    brute(request, outptr, wmin, wmax, lmin, lmax, match_callback, &r_info, incomp, dups, rs, CONFIG_MAX_TIME);
 
     free(request);
     websocket_close(ws);

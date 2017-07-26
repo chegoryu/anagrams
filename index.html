@@ -25,6 +25,10 @@
               r += "&inc";
           if (rseed.value != "")
               r += "&r=" + rseed.value;
+          if (lmin.value != "")
+              r += "&lmin=" + lmin.value;
+          if (lmax.value != "")
+              r += "&lmax=" + lmax.value;
           return r;
       }
 
@@ -32,6 +36,8 @@
           search.value = "";
           wmin.value = "";
           wmax.value = "";
+          lmin.value = "";
+          lmax.value = "";
           candup.checked = false;
           incomp.checked = false;
           chkb.checked   = false;
@@ -47,6 +53,10 @@
                       wmin.value = ps[1];
                   else if (ps[0] == "wmax")
                       wmax.value = ps[1];
+                  else if (ps[0] == "lmin")
+                      lmin.value = ps[1], chkb.checked = true;
+                  else if (ps[0] == "lmax")
+                      lmax.value = ps[1], chkb.checked = true;
                   else if (ps[0] == "r")
                       rseed.value = ps[1], chkb.checked = true;
               } else if (ps.length == 1) {
@@ -65,6 +75,8 @@
           var q = "";
           var mn = "";
           var mx = "";
+          var lmn = "";
+          var lmx = "";
           var rs = "";
           var du  = false;
           var inc = false;
@@ -79,6 +91,10 @@
                       mn = ps[1];
                   else if (ps[0] == "wmax")
                       mx = ps[1];
+                  else if (ps[0] == "lmin")
+                      lmn = ps[1];
+                  else if (ps[0] == "lmax")
+                      lmx = ps[1];
                   else if (ps[0] == "r")
                       rs = ps[1];
               } else if (ps.length == 1) {
@@ -96,6 +112,8 @@
               r += "; #" + rs;
           if (du || inc)
               r += "; " + (du ? "D" : "") + (inc ? "I" : "");
+          if (lmn != "" || lmx != "")
+              r += "; W: " + + (lmn == "" ? "1" : lmn) + ".." + (lmx == "" ? "inf" : lmx);
           return r;
       }
 
@@ -149,6 +167,8 @@
           search = document.getElementById("search");
           wmin   = document.getElementById("search_wmin");
           wmax   = document.getElementById("search_wmax");
+          lmin   = document.getElementById("search_lmin");
+          lmax   = document.getElementById("search_lmax");
           candup = document.getElementById("candup");
           rseed  = document.getElementById("random_seed");
           incomp = document.getElementById("incomplete");
@@ -269,6 +289,17 @@
          <div class="formbtn">
            <input id="random_seed" type="number" placeholder="0" min="0" max="1000000"/>
          </div>
+      </form>
+      <form>
+        <div class="forminfo">длина слов от</div>
+         <div class="formbtn">
+           <input id="search_lmin" type="number" placeholder="1" min="1" max="100"/>
+         </div>
+         <div class="forminfo">до</div>
+         <div class="formbtn">
+           <input id="search_lmax" type="number" placeholder="99" min="1" max="99"/>
+         </div>
+         <div class="forminfo">символов</div>
       </form>
     </div>
 
