@@ -24,6 +24,7 @@ const char* enomem      = "[server used too much memory]";
 struct request_info {
     ws_s* ws;
     int num_found;
+    const char* with;
     char tmpbuf[CONFIG_REQUEST_MAX];
 };
 
@@ -36,6 +37,18 @@ int match_callback(const char* data, int words, int* length, void* info_) {
     int inptr = 0;
     int outptr = 0;
     UBool err = 0;
+
+    if (info->with != NULL) {
+        info->tmpbuf[outptr++] = '[';
+
+        for (const char* ptr = info->with; *ptr != 0; ++ptr)
+            info->tmpbuf[outptr++] = *ptr;
+        
+        info->tmpbuf[outptr++] = ']';
+        info->tmpbuf[outptr++] = ' ';
+    }
+        
+    
     for (int w = 0; w != words; ++w) {
         if (outptr == sizeof(info->tmpbuf))
             goto fail;
@@ -79,15 +92,24 @@ int string_to_num_simple(char* str) {
 
 void ws_open(ws_s* ws) {
     fprintf(stderr, "Opened a new websocket connection (%p)\n", (void*)ws);
-    
+
+    struct request_info r_info;
+    r_info.with      = NULL;
+    r_info.ws        = ws;
+    r_info.num_found = 0;
+
     char* udata  = websocket_udata(ws);
     int32_t udata_len  = udata == NULL ? -1 : (int)strlen(udata);
     char* request      = udata_len == -1 ? NULL : malloc(udata_len + 1);
-
+    
     if (request == NULL) {
         websocket_write(ws, (char*)enomem, strlen(enomem), 1);
         websocket_close(ws);
     }
+
+    int freq[CONFIG_ALPH_SIZE];
+    for (int i = 0; i != CONFIG_ALPH_SIZE; ++i)
+        freq[i] = 0;
     
     int wmin = -1;
     int wmax = -1;
@@ -99,6 +121,8 @@ void ws_open(ws_s* ws) {
     int rs     = 0;
     
     int32_t outptr = 0;
+
+    int word_adjust = 0;
     
     char* strtok_save;
     for (;; udata = NULL) {
@@ -110,12 +134,19 @@ void ws_open(ws_s* ws) {
         if (peq != NULL)
             *peq = 0;
             
-        if (strcmp(tok, "q") == 0) {
+        if (strcmp(tok, "q") == 0 || strcmp(tok, "with") == 0) {
             if (peq == NULL)
                 goto fail;
             ++peq;
+
+            if (strcmp(tok, "with") == 0) {
+                if (r_info.with != NULL)
+                    goto fail;
+                r_info.with = peq;
+            }
             
             int32_t inptr = 0;
+            int is = 0;
             
             while (peq[inptr] != 0) {
                 UChar32 ch;
@@ -126,10 +157,17 @@ void ws_open(ws_s* ws) {
                    goto fail;
                 
                 if (CONFIG_UNI_START <= ch && ch < CONFIG_UNI_START + CONFIG_ALPH_SIZE)
-                    request[outptr++] = ch - CONFIG_UNI_START;
+                    freq[ch - CONFIG_UNI_START] += (tok[0] == 'q' ? 1 : -1), ++is;
                 else if (ch != ' ')
                     goto fail;
+                else if (tok[0] == 'w') {
+                    word_adjust += (is != 0);
+                    is = 0;
+                }
             }
+            
+            if (tok[0] == 'w')
+                word_adjust += (is != 0);
         } else if (strcmp(tok, "wmin") == 0) {
             if (peq == NULL)
                 goto fail;
@@ -187,27 +225,35 @@ void ws_open(ws_s* ws) {
             goto fail;
         }
     }
-    
-    struct request_info r_info;
-    r_info.ws        = ws;
-    r_info.num_found = 0;
 
-    if (wmin == -1)
+    if (wmin != -1)
+        wmin -= word_adjust;
+    else
         wmin = CONFIG_DEFAULT_WORDS_MIN;
-    if (wmax == -1)
+    
+    if (wmax != -1)
+        wmax -= word_adjust;
+    else
         wmax = CONFIG_DEFAULT_WORDS_MAX;
 
     if (lmin == -1)
         lmin = CONFIG_DEFAULT_SYMB_MIN;
     if (lmax == -1)
         lmax = CONFIG_DEFAULT_SYMB_MAX;
-
     
     if (wmin < CONFIG_LIMIT_WORDS_MIN || wmax > CONFIG_LIMIT_WORDS_MAX || wmin > wmax)
         goto fail;
 
     if (lmin < CONFIG_LIMIT_SYMB_MIN || lmax > CONFIG_LIMIT_SYMB_MAX || lmin > lmax)
         goto fail;
+
+    for (int i = 0; i != CONFIG_ALPH_SIZE; ++i) {
+        if (freq[i] < 0)
+            goto fail;
+        
+        for (int t = 0; t != freq[i]; ++t)
+            request[outptr++] = i;
+    }
     
     brute(request, outptr, wmin, wmax, lmin, lmax, match_callback, &r_info, incomp, dups, rs, CONFIG_MAX_TIME);
 
