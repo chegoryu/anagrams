@@ -6,6 +6,8 @@ Anagrams for lksh
 
 This is branch with old version of facil, main branch does not work with latest version now. Do not update facil.
 
+To install facil just unzip archive.
+
 Then build as usual CMake project:
 
 mkdir build && cd build && cmake .. && make

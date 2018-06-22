@@ -1,1 +1,4 @@
 build/
+extern/*
+!extern/facil.io_old.zip
+!extern/.keep
