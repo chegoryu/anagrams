@@ -4,9 +4,7 @@ Anagrams for lksh
 
 # Build
 
-To build you need the "facil" framework, please run the following command to get it:
-
-git clone -b stable https://github.com/boazsegev/facil.io extern/facil.io
+This is branch with old version of facil, main branch does not work with latest version now. Do not update facil.
 
 Then build as usual CMake project:
 
